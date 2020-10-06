@@ -41,19 +41,39 @@ def sample(pwd: str, rounds: int = 20) -> Tuple[str, int]:
     return pwd, micros.mean()
 
 
-def verify_passwords(passwords: List[str], max_workers: int = 10):
+def send_with_pwd(pwd: str) -> Tuple[str, int]:
+    _, time = send(pwd)
+    return pwd, time
+
+
+def verify_passwords(passwords: List[str], max_workers: int = 10, sample_rounds: int = 10):
+    means = {pwd: [] for pwd in passwords}
     with confu.ThreadPoolExecutor(max_workers) as executor:
-        futures = [executor.submit(sample, pwd) for pwd in passwords]
+        futures = [executor.submit(send_with_pwd, pwd) for pwd in passwords for _ in range(sample_rounds)]
         for future in confu.as_completed(futures):
             try:
-                pwd, mean = future.result()
-                print(f'{mean} -- {pwd}')
+                pwd, micros = future.result()
+                means[pwd].append(micros)
             except ValueError as e:
                 logger.exception(e)
+
+    pwd_mean = []
+    for pwd, v in means.items():
+        micros = np.asarray(v)
+        logger.info(f'COUNT={micros.size}, MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} -- {pwd}')
+        pwd_mean.append((pwd, micros.mean()))
+
+    pwd_mean.sort(key=lambda x: x[1], reverse=True)
+    for pwd, mean in pwd_mean:
+        logger.info(f'{mean} - {pwd}')
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     warnings.filterwarnings("ignore")
 
-    verify_passwords(['Password', 'none', 'Password1', 'Password '])
+    verify_passwords(
+        [
+            'Password', 'Password123', 'Password111'
+        ]
+    )
