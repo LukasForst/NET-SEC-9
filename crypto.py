@@ -1,12 +1,15 @@
 import hashlib
 import random
 
+# ITERATIONS = 100000
+ITERATIONS = 1000000
+
 
 def hash(password, salt):
     h = []
     for i in range(len(password)):
         m = hashlib.sha256()
-        for j in range(100000):
+        for j in range(ITERATIONS):
             m.update(password[i].encode())
         m.update(salt)
         h = h + [m.hexdigest()[0:4]]
@@ -17,7 +20,7 @@ def compare(password, hash, salt):
     h = []
     for i in range(0, len(password)):
         m = hashlib.sha256()
-        for j in range(100000):
+        for j in range(ITERATIONS):
             m.update(password[i].encode())
         m.update(salt)
         if (hash[4 * i] != m.hexdigest()[0]) or (hash[4 * i + 1] != m.hexdigest()[1]) or (
@@ -44,6 +47,7 @@ def test():
 def test_data():
     hsh = '08af244f2b442b441a964d3bdf764bd0'
     salt = b'\xeb\xb66\x03\x9a]n\xc5\x9c\x9c\xcc\xbc\xb9\x17\x13\xf1'
+    print(compare('Password', hsh, salt))
     print(compare('Password', hsh, salt))
 
 
