@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO,
                     stream=sys.stdout)
 
 
-def send(pwd: str) -> Tuple[int, int]:
+def test_remotely(pwd: str) -> Tuple[int, int]:
     start = datetime.datetime.now()
     r = requests.post(
         'https://ec2-18-218-24-114.us-east-2.compute.amazonaws.com:8080',
@@ -54,13 +54,14 @@ def test_locally(pwd: str) -> Tuple[int, int]:
 
 
 def sample(pwd: str, rounds: int = 20) -> Tuple[str, int]:
-    micros = np.asarray([send(pwd)[1] for _ in range(rounds)])
+    micros = np.asarray([test_remotely(pwd)[1] for _ in range(rounds)])
     logger.info(f'MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} || {pwd}')
     return pwd, micros.mean()
 
 
 def send_with_pwd(pwd: str) -> Tuple[str, int]:
-    _, time = send(pwd)
+    # _, time = test_remotely(pwd)
+    _, time = test_locally(pwd)
     return pwd, time
 
 
@@ -78,8 +79,9 @@ def verify_passwords(passwords: List[str], sample_rounds: int = 20) -> Dict[str,
         mean = micros.mean()
         std = micros.std()
         micros = micros[np.abs(micros - mean) <= 2 * std]
-
-        logger.info(f'COUNT={micros.size}, MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} -- {pwd}')
+        # micros.sort()
+        # micros = micros[0:2]
+        logger.info(f'C OUNT={micros.size}, MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} -- {pwd}')
         pwd_mean.append((pwd, micros.mean()))
 
     pwd_mean.sort(key=lambda x: x[1], reverse=True)
@@ -90,8 +92,4 @@ def verify_passwords(passwords: List[str], sample_rounds: int = 20) -> Dict[str,
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    verify_passwords(
-        [
-            'none', 'Passw', 'Passwor', 'Password123', 'Password111'
-        ]
-    )
+    verify_passwords(['Pass#', 'Pasx#'], sample_rounds=10)

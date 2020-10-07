@@ -3,7 +3,7 @@ import string
 import sys
 import time
 
-from main import send
+from main import test_remotely
 
 
 def my_hash(password, salt):
@@ -33,7 +33,7 @@ def compare(password, pass_hash, salt):
 
 
 def remote_compare(pwd: str) -> bool:
-    status, _ = send(pwd)
+    status, _ = test_remotely(pwd)
     return status == 200
 
 

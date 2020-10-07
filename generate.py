@@ -15,15 +15,16 @@ logging.basicConfig(level=logging.INFO,
 
 
 def run():
+    expected_len = len('Password')
     alphabet = string.ascii_lowercase
-    padding = '#'
     selected = ['P']
-    for _ in range(0, 2):
+    for _ in range(0, expected_len - 1):
         pwd = ''.join(selected)
-
+        padding = '#' if len(pwd) + 1 < expected_len else ''
         possible_pwds = [pwd + letter + padding for letter in alphabet]
         print(possible_pwds)
-        sampled = verify_passwords(possible_pwds, sample_rounds=7)
+
+        sampled = verify_passwords(possible_pwds, sample_rounds=20)
 
         selected_pwd = max(sampled, key=sampled.get)
         selected.append(selected_pwd[-2])
