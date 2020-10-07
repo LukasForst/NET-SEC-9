@@ -4,9 +4,9 @@
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 import datetime
 import logging
-import multiprocessing.pool as mpp
 import sys
 import warnings
+from multiprocessing import Pool
 from typing import Tuple, List, Dict
 
 import numpy as np
@@ -62,16 +62,12 @@ def send_with_pwd(pwd: str) -> Tuple[str, int]:
     return pwd, time
 
 
-def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: int = 50) -> Dict[str, int]:
+def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: int = 20) -> Dict[str, int]:
     means = {pwd: [] for pwd in passwords}
-    with mpp.ThreadPool(max_workers) as pool:
-        results = [pool.apply_async(send_with_pwd, [pwd]) for pwd in passwords for _ in range(sample_rounds)]
-        for result in results:
-            try:
-                pwd, micros = result.get()
-                means[pwd].append(micros)
-            except ValueError as e:
-                logger.exception(e)
+    with Pool(max_workers) as pool:
+        for result in pool.map(send_with_pwd, passwords * sample_rounds):
+            pwd, micros = result
+            means[pwd].append(micros)
 
     pwd_mean = []
     for pwd, v in means.items():
@@ -91,6 +87,6 @@ if __name__ == '__main__':
 
     verify_passwords(
         [
-            'none', 'Passw', 'Password', 'Password123', 'Password111'
+            'none', 'Passw', 'Passwor', 'Password123', 'Password111'
         ]
     )

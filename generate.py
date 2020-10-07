@@ -19,7 +19,7 @@ def run():
         pwd = ''.join(selected)
 
         possible_pwds = [pwd + letter + padding for letter in alphabet] * 15
-        sampled = verify_passwords(possible_pwds, max_workers=20, sample_rounds=1)
+        sampled = verify_passwords(possible_pwds, max_workers=10, sample_rounds=2)
 
         selected_pwd = max(sampled, key=sampled.get)
         selected.append(selected_pwd[-2])
