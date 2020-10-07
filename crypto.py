@@ -1,8 +1,8 @@
 import hashlib
 import random
 
-# ITERATIONS = 100000
-ITERATIONS = 1000000
+ITERATIONS = 100000
+# ITERATIONS = 1000000
 
 
 def hash(password, salt):

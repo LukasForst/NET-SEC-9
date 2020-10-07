@@ -7,7 +7,7 @@ import logging
 import multiprocessing.pool as mpp
 import sys
 import warnings
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 import numpy as np
 import requests
@@ -15,7 +15,7 @@ import requests
 from test_server import test_local_compare
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format='[%(asctime)s] - %(levelname)s - %(module)s: %(message)s',
                     stream=sys.stdout)
 
@@ -53,16 +53,16 @@ def test_locally(pwd: str) -> Tuple[int, int]:
 
 def sample(pwd: str, rounds: int = 20) -> Tuple[str, int]:
     micros = np.asarray([send(pwd)[1] for _ in range(rounds)])
-    logger.info(f'MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()}')
+    logger.info(f'MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} || {pwd}')
     return pwd, micros.mean()
 
 
 def send_with_pwd(pwd: str) -> Tuple[str, int]:
-    _, time = test_locally(pwd)
+    _, time = send(pwd)
     return pwd, time
 
 
-def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: int = 50):
+def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: int = 50) -> Dict[str, int]:
     means = {pwd: [] for pwd in passwords}
     with mpp.ThreadPool(max_workers) as pool:
         results = [pool.apply_async(send_with_pwd, [pwd]) for pwd in passwords for _ in range(sample_rounds)]
@@ -82,6 +82,7 @@ def verify_passwords(passwords: List[str], max_workers: int = 5, sample_rounds: 
     pwd_mean.sort(key=lambda x: x[1], reverse=True)
     for pwd, mean in pwd_mean:
         logger.info(f'{mean} - {pwd}')
+    return {pwd: mean for pwd, mean in pwd_mean}
 
 
 # Press the green button in the gutter to run the script.
