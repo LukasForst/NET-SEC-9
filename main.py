@@ -66,7 +66,7 @@ def send_with_pwd(pwd: str) -> Tuple[str, int]:
 
 def verify_passwords(passwords: List[str], sample_rounds: int = 20) -> Dict[str, int]:
     means = {pwd: [] for pwd in passwords}
-    with Pool(20) as pool:
+    with Pool() as pool:
         for result in pool.map(send_with_pwd, passwords * sample_rounds):
             pwd, micros = result
             means[pwd].append(micros)
@@ -74,6 +74,9 @@ def verify_passwords(passwords: List[str], sample_rounds: int = 20) -> Dict[str,
     pwd_mean = []
     for pwd, v in means.items():
         micros = np.asarray(v)
+        micros.sort()
+        # delete outliers
+        micros = micros[1:-1]
         logger.info(f'COUNT={micros.size}, MED={np.median(micros)}, E={micros.mean()}, ST={micros.std()} -- {pwd}')
         pwd_mean.append((pwd, micros.mean()))
 

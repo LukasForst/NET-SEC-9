@@ -1,7 +1,8 @@
 import hashlib
 import random
 
-ITERATIONS = 100000
+# ITERATIONS = 100000
+ITERATIONS = 500000
 # ITERATIONS = 1000000
 
 
